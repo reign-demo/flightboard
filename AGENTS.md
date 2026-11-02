@@ -64,7 +64,7 @@ A change to a status or a pay type usually touches the Go model, `web/src/api/ty
 | Method and path | Purpose |
 |---|---|
 | `GET /api/health` | Health check |
-| `GET /api/work-orders?status=&providerId=&typeOfWork=` | List work orders, newest first, with `provider` expanded and `expenseTotals`; optional `status` filters by lifecycle status (e.g. `Draft` or `Work%20Done`), unknown statuses return 400; optional `typeOfWork` keeps one type of work, ignoring case |
+| `GET /api/work-orders?status=&providerId=&typeOfWork=&buyer=` | List work orders, newest first, with `provider` expanded and `expenseTotals`; optional `status` filters by lifecycle status (e.g. `Draft` or `Work%20Done`), unknown statuses return 400; optional `typeOfWork` and `buyer` match ignoring case; all filters combine |
 | `POST /api/work-orders` | Create a work order as `Draft` or `Published` |
 | `GET /api/work-orders/summary` | Total work orders, counts for every status, and `pendingExpenses`: the number of work orders with at least one `Pending` expense |
 | `GET /api/work-orders/{id}` | One work order with `expenseTotals` |
