@@ -59,6 +59,10 @@ func TestListWorkOrdersBuyerFilter(t *testing.T) {
 			want: []int{},
 		},
 		{
+			name: "missing buyer preserves other filters", query: "?status=Assigned&providerId=p-101&typeOfWork=Networking",
+			want: []int{9631810},
+		},
+		{
 			name: "empty buyer preserves other filters", query: "?buyer=&status=Assigned&providerId=p-101&typeOfWork=Networking",
 			want: []int{9631810},
 		},
