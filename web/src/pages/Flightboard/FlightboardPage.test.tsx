@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, payApi } from '../../api/client'
 import { makeWorkOrder } from '../../test/fixtures'
 import { renderAt } from '../../test/render'
@@ -18,6 +18,8 @@ const workOrders = [
 ]
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-22T19:00:00Z'))
   vi.mocked(api.nearbyProviders).mockReset().mockResolvedValue([])
   vi.mocked(api.listWorkOrders).mockResolvedValue(workOrders)
   vi.mocked(payApi.quote).mockResolvedValue({
@@ -27,7 +29,47 @@ beforeEach(() => {
   })
 })
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('FlightboardPage', () => {
+  it('shows the overdue count independently of the selected tab', async () => {
+    renderAt(<FlightboardPage />)
+
+    expect(await screen.findByText('2 overdue')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Draft (1)' }))
+
+    expect(screen.getByText('2 overdue')).toBeInTheDocument()
+  })
+
+  it('updates the overdue count with search and hides the chip at zero matches', async () => {
+    renderAt(<FlightboardPage />)
+    await screen.findByText('2 overdue')
+
+    const search = screen.getByRole('textbox', { name: 'Search work orders' })
+    await userEvent.type(search, 'mount')
+
+    expect(screen.getByText('1 overdue')).toBeInTheDocument()
+    expect(screen.queryByText('2 overdue')).not.toBeInTheDocument()
+
+    await userEvent.clear(search)
+    await userEvent.type(search, 'draft')
+
+    expect(screen.queryByText(/\d+ overdue/)).not.toBeInTheDocument()
+  })
+
+  it('shows no overdue chip when no work orders are overdue', async () => {
+    vi.mocked(api.listWorkOrders).mockResolvedValue([
+      makeWorkOrder({ schedule: { start: '2026-10-22T14:00:00Z', end: '2026-10-22T19:00:00Z' } }),
+    ])
+    renderAt(<FlightboardPage />)
+    await screen.findByText('Replace network switch')
+
+    expect(screen.queryByText(/\d+ overdue/)).not.toBeInTheDocument()
+  })
+
   it('links to the Pay run page', async () => {
     renderAt(<FlightboardPage />)
     await screen.findByText('Fix kiosk')

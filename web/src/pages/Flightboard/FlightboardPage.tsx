@@ -2,6 +2,7 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
+import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
@@ -11,7 +12,9 @@ import { Link as RouterLink, useSearchParams } from 'react-router-dom'
 import { useWorkOrders } from '../../api/hooks'
 import type { WorkOrder } from '../../api/types'
 import { PageHeader } from '../../components/PageHeader'
+import { isOverdue } from '../../lib/overdue'
 import { DEFAULT_TAB_ID, findTab, tabCounts } from '../../lib/tabs'
+import { colors } from '../../theme'
 import { DetailPanel } from './DetailPanel'
 import { StatusTabs } from './StatusTabs'
 import { WorkOrderTable } from './WorkOrderTable'
@@ -33,6 +36,8 @@ export function FlightboardPage() {
   const tab = findTab(params.get('tab') ?? DEFAULT_TAB_ID)
   const searched = useMemo(() => (data ?? []).filter((wo) => matchesSearch(wo, query)), [data, query])
   const counts = useMemo(() => tabCounts(searched), [searched])
+  const now = new Date()
+  const overdueCount = searched.filter((wo) => isOverdue(wo, now)).length
   const rows = useMemo(() => searched.filter(tab.matches), [searched, tab])
   const selected = rows.find((wo) => wo.id === selectedId) ?? null
 
@@ -52,12 +57,12 @@ export function FlightboardPage() {
         }
       />
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Card sx={{ p: 1.5 }}>
+        <Card sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2 }}>
           <TextField
             placeholder="Search by ID, title, type of work, buyer, provider or city"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            sx={{ maxWidth: 480, bgcolor: '#FFFFFF' }}
+            sx={{ maxWidth: 480, minWidth: 0, bgcolor: '#FFFFFF' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -67,6 +72,13 @@ export function FlightboardPage() {
             }}
             inputProps={{ 'aria-label': 'Search work orders' }}
           />
+          {overdueCount > 0 && (
+            <Chip
+              size="small"
+              label={`${overdueCount} overdue`}
+              sx={{ bgcolor: colors.alertBg, color: colors.alertText, flexShrink: 0 }}
+            />
+          )}
         </Card>
         <StatusTabs
           value={tab.id}
