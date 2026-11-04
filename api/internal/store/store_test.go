@@ -25,7 +25,7 @@ func TestSeedIsConsistent(t *testing.T) {
 	if len(all) < 20 {
 		t.Fatalf("seed has %d work orders, want at least 20", len(all))
 	}
-	if len(s.ListProviders()) < 5 {
+	if len(s.ListProviders("")) < 5 {
 		t.Fatal("seed has too few providers")
 	}
 	for _, w := range all {
@@ -40,6 +40,43 @@ func TestSeedIsConsistent(t *testing.T) {
 		if err := workorder.ValidatePay(w.Pay); err != nil && w.Pay.Type != workorder.PayBlended {
 			t.Errorf("work order %d has invalid pay: %v", w.ID, err)
 		}
+	}
+}
+
+func TestListProvidersStateFilter(t *testing.T) {
+	s := New()
+	s.providers = map[string]workorder.Provider{
+		"a": {ID: "a", Name: "Alex", Score: 90, State: "MN"},
+		"b": {ID: "b", Name: "Blair", Score: 90, State: "mn"},
+		"c": {ID: "c", Name: "Casey", Score: 95, State: "MN"},
+		"d": {ID: "d", Name: "Drew", Score: 99, State: "IL"},
+	}
+	for _, tt := range []struct {
+		name  string
+		state string
+		want  []string
+	}{
+		{name: "empty state", want: []string{"d", "c", "a", "b"}},
+		{name: "uppercase state", state: "MN", want: []string{"c", "a", "b"}},
+		{name: "lowercase state", state: "mn", want: []string{"c", "a", "b"}},
+		{name: "mixed case state", state: "mN", want: []string{"c", "a", "b"}},
+		{name: "other state", state: "IL", want: []string{"d"}},
+		{name: "unknown state", state: "ZZ", want: []string{}},
+		{name: "partial state", state: "M", want: []string{}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			list := s.ListProviders(tt.state)
+			if list == nil {
+				t.Fatal("providers must be an array, not null")
+			}
+			got := make([]string, len(list))
+			for i, p := range list {
+				got[i] = p.ID
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("ids = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 

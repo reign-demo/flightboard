@@ -98,7 +98,7 @@ func (s *Server) workOrderWeek(w http.ResponseWriter, r *http.Request) {
 	}
 	list := s.store.ListWorkOrders(store.Filter{ProviderID: r.URL.Query().Get("providerId")})
 	providers := make(map[string]workorder.Provider)
-	for _, p := range s.store.ListProviders() {
+	for _, p := range s.store.ListProviders("") {
 		providers[p.ID] = p
 	}
 	writeJSON(w, http.StatusOK, buildWeek(start, list, providers))

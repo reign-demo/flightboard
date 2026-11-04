@@ -285,8 +285,8 @@ func (s *Server) updateTask(w http.ResponseWriter, r *http.Request) {
 	s.respond(w, http.StatusOK, wo, err)
 }
 
-func (s *Server) listProviders(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, s.store.ListProviders())
+func (s *Server) listProviders(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, s.store.ListProviders(r.URL.Query().Get("state")))
 }
 
 func (s *Server) getProvider(w http.ResponseWriter, r *http.Request) {

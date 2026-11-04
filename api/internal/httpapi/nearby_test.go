@@ -103,7 +103,7 @@ func TestWorkOrderNearbyProvidersReadOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	providersBefore := s.store.ListProviders()
+	providersBefore := s.store.ListProviders("")
 	rec := do(t, s, "GET", "/api/work-orders/9631810/nearby-providers", "not JSON")
 	if rec.Code != http.StatusOK {
 		t.Fatalf("code = %d body %s", rec.Code, rec.Body)
@@ -115,7 +115,7 @@ func TestWorkOrderNearbyProvidersReadOnly(t *testing.T) {
 	if !reflect.DeepEqual(before, after) {
 		t.Error("listing changed the stored work order")
 	}
-	if !slices.Equal(providersBefore, s.store.ListProviders()) {
+	if !slices.Equal(providersBefore, s.store.ListProviders("")) {
 		t.Error("listing changed the stored providers")
 	}
 }
