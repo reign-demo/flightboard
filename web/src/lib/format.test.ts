@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, formatMoney, formatPay, minutesBetween, pluralize } from './format'
+import { formatDuration, formatMoney, formatPay, formatPercent, minutesBetween, pluralize } from './format'
 import { scoreLabel } from './score'
+
+describe('formatPercent', () => {
+  it.each([
+    [66.6, '67%'],
+    [66.4, '66%'],
+    [-5, '0%'],
+    [140, '100%'],
+    [0, '0%'],
+    [100, '100%'],
+    [67, '67%'],
+  ])('formats %s as %s', (value, want) => {
+    expect(formatPercent(value)).toBe(want)
+  })
+})
 
 describe('pluralize', () => {
   it.each([

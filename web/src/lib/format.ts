@@ -6,6 +6,10 @@ export function formatMoney(amount: number): string {
   return money.format(amount)
 }
 
+export function formatPercent(value: number): string {
+  return `${Math.round(Math.min(100, Math.max(0, value)))}%`
+}
+
 export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
   return `${count} ${count === 1 ? singular : plural}`
 }
