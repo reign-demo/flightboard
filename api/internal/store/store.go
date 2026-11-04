@@ -278,12 +278,16 @@ func (s *Store) CheckOut(id int, at time.Time) (workorder.WorkOrder, error) {
 	})
 }
 
-// ListProviders returns all providers, highest score first.
-func (s *Store) ListProviders() []workorder.Provider {
+// ListProviders returns providers matching state, highest score first.
+// An empty state returns all providers.
+func (s *Store) ListProviders(state string) []workorder.Provider {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	out := make([]workorder.Provider, 0, len(s.providers))
 	for _, p := range s.providers {
+		if state != "" && !strings.EqualFold(p.State, state) {
+			continue
+		}
 		out = append(out, p)
 	}
 	slices.SortFunc(out, func(a, b workorder.Provider) int {

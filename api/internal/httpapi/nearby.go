@@ -17,7 +17,7 @@ func (s *Server) workOrderNearbyProviders(w http.ResponseWriter, r *http.Request
 		writeStoreError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, nearbyProviders(wo, s.store.ListProviders()))
+	writeJSON(w, http.StatusOK, nearbyProviders(wo, s.store.ListProviders("")))
 }
 
 func nearbyProviders(wo workorder.WorkOrder, providers []workorder.Provider) []workorder.Provider {
