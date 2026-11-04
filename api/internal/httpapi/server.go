@@ -37,6 +37,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/work-orders/{id}/progress", s.workOrderProgress)
 	s.mux.HandleFunc("GET /api/work-orders/{id}/nearby-providers", s.workOrderNearbyProviders)
 	s.mux.HandleFunc("GET /api/work-orders/{id}/expenses", s.workOrderExpenses)
+	s.mux.HandleFunc("POST /api/work-orders/{id}/expenses", s.addWorkOrderExpense)
 	s.mux.HandleFunc("POST /api/work-orders/{id}/status", s.setStatus)
 	s.mux.HandleFunc("POST /api/work-orders/{id}/check-in", s.checkIn)
 	s.mux.HandleFunc("POST /api/work-orders/{id}/check-out", s.checkOut)
@@ -163,6 +164,29 @@ func (s *Server) workOrderExpenses(w http.ResponseWriter, r *http.Request) {
 		return b.CreatedAt.Compare(a.CreatedAt)
 	})
 	writeJSON(w, http.StatusOK, expenses)
+}
+
+func (s *Server) addWorkOrderExpense(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+	var in struct {
+		Category    workorder.ExpenseCategory `json:"category"`
+		Description string                    `json:"description"`
+		AmountCents int                       `json:"amountCents"`
+	}
+	if !readJSON(w, r, &in) {
+		return
+	}
+	expense, err := s.store.AddExpense(id, workorder.Expense{
+		Category: in.Category, Description: in.Description, AmountCents: in.AmountCents,
+	})
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, expense)
 }
 
 type taskCounts struct {
