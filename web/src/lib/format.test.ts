@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, formatMoney, formatPay, minutesBetween } from './format'
+import { formatDuration, formatMoney, formatPay, minutesBetween, pluralize } from './format'
 import { scoreLabel } from './score'
+
+describe('pluralize', () => {
+  it.each([
+    [1, 'task', undefined, '1 task'],
+    [0, 'task', undefined, '0 tasks'],
+    [3, 'task', undefined, '3 tasks'],
+    [2, 'person', 'people', '2 people'],
+    [1, 'person', 'people', '1 person'],
+  ] as const)('formats %i %s with plural %s', (count, singular, plural, want) => {
+    expect(pluralize(count, singular, plural)).toBe(want)
+  })
+})
 
 describe('formatPay', () => {
   it.each([
