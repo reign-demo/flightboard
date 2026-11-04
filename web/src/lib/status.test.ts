@@ -6,12 +6,16 @@ describe('statusChip', () => {
     expect(statusChip('Published')).toMatchObject({ label: 'Published', bg: '#038350' })
   })
 
-  it.each(['Draft', 'Assigned', 'Work Done', 'Approved', 'Paid', 'Cancelled'] as const)(
+  it.each(['Draft', 'Assigned', 'Work Done', 'Approved', 'Paid'] as const)(
     'labels %s with its own name',
     (status) => {
       expect(statusChip(status).label).toBe(status)
     },
   )
+
+  it('labels Cancelled as Canceled', () => {
+    expect(statusChip('Cancelled').label).toBe('Canceled')
+  })
 })
 
 describe('healthChip', () => {
