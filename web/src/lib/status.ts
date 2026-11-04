@@ -25,7 +25,7 @@ export function statusChip(status: Status): ChipStyle {
     case 'Paid':
       return { label: 'Paid', bg: '#DDF3E8', fg: colors.success, border: colors.success }
     case 'Cancelled':
-      return { label: 'Canceled', bg: '#FFFFFF', fg: colors.iconGray, border: colors.border }
+      return { label: 'Void', bg: '#FFFFFF', fg: colors.iconGray, border: colors.border }
   }
 }
 
