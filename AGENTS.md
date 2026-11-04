@@ -77,7 +77,7 @@ A change to a status or a pay type usually touches the Go model, `web/src/api/ty
 | `POST /api/work-orders/{id}/check-out` | Record check-out, same body |
 | `POST /api/work-orders/pay-run` | Mark approved work orders Paid in one step, body `{"ids":[9631821,9631822]}`. All or nothing: an unknown id answers 404, and a work order that is not Approved answers 409. Sets `paidAt`. |
 | `PATCH /api/work-orders/{id}/tasks/{taskId}` | Mark a task done, body `{"done":true}` |
-| `GET /api/providers`, `GET /api/providers/{id}` | Providers, highest score first |
+| `GET /api/providers?state=`, `GET /api/providers/{id}` | Providers, highest score first; optional `state` filters the list by exact state ignoring case, and missing or empty state returns all providers |
 | `POST /pay/quote` | Pay quote, body is a work order `pay` object |
 
 `expenseTotals` has `count`, `pendingCents`, `approvedCents`, and `rejectedCents`.
