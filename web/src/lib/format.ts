@@ -6,6 +6,11 @@ export function formatMoney(amount: number): string {
   return money.format(amount)
 }
 
+export function formatCompactMoney(amount: number): string {
+  if (amount < 1000) return formatMoney(amount)
+  return `$${(amount / 1000).toFixed(1).replace(/\.0$/, '')}K`
+}
+
 export function formatPercent(value: number): string {
   return `${Math.round(Math.min(100, Math.max(0, value)))}%`
 }
