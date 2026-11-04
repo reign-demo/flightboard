@@ -13,8 +13,8 @@ describe('statusChip', () => {
     },
   )
 
-  it('labels Cancelled as Canceled', () => {
-    expect(statusChip('Cancelled').label).toBe('Canceled')
+  it('labels Cancelled as Void', () => {
+    expect(statusChip('Cancelled').label).toBe('Void')
   })
 })
 
