@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, payApi } from '../../api/client'
 import { makeWorkOrder } from '../../test/fixtures'
 import { renderAt } from '../../test/render'
+import { colors } from '../../theme'
 import { FlightboardPage } from './FlightboardPage'
 
 vi.mock('../../api/client', () => ({
@@ -40,6 +41,8 @@ describe('FlightboardPage', () => {
 
     expect(await screen.findByText('Fix kiosk')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'In-Flight (2)' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Alerts (2)' })).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getAllByRole('tab')[1]).toHaveTextContent('Alerts (2)')
     expect(screen.getByRole('tab', { name: 'Draft (1)' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'All (3)' })).toBeInTheDocument()
     expect(screen.queryByText('Draft job')).not.toBeInTheDocument()
@@ -55,11 +58,54 @@ describe('FlightboardPage', () => {
     expect(screen.queryByText('Fix kiosk')).not.toBeInTheDocument()
   })
 
-  it('tints alert rows', async () => {
+  it('opens Alerts from its URL and excludes healthy, Paid and Cancelled work orders', async () => {
+    vi.mocked(api.listWorkOrders).mockResolvedValue([
+      ...workOrders,
+      makeWorkOrder({ id: 1000004, title: 'Healthy job', health: 'On Track' }),
+      makeWorkOrder({ id: 1000005, title: 'Paid alert', status: 'Paid', health: 'Alert' }),
+      makeWorkOrder({ id: 1000006, title: 'Cancelled review', status: 'Cancelled', health: 'Review' }),
+    ])
+    renderAt(<FlightboardPage />, { url: '/?tab=alerts' })
+
+    const table = await screen.findByRole('table', { name: 'Work orders' })
+    expect(screen.getByRole('tab', { name: 'Alerts (2)' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(table).getByText('Fix kiosk')).toBeInTheDocument()
+    expect(within(table).getByText('Mount screens')).toBeInTheDocument()
+    expect(within(table).getAllByRole('row')).toHaveLength(3)
+    for (const title of ['Draft job', 'Healthy job', 'Paid alert', 'Cancelled review']) {
+      expect(screen.queryByText(title)).not.toBeInTheDocument()
+    }
+  })
+
+  it('switches to Alerts and updates its count and rows with search', async () => {
     renderAt(<FlightboardPage />)
+    await screen.findByText('Fix kiosk')
+    await userEvent.click(screen.getByRole('tab', { name: 'Alerts (2)' }))
+
+    expect(screen.getByRole('tab', { name: 'Alerts (2)' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Mount screens')).toBeInTheDocument()
+
+    const search = screen.getByRole('textbox', { name: 'Search work orders' })
+    await userEvent.type(search, 'mount')
+
+    expect(screen.getByRole('tab', { name: 'Alerts (1)' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('Mount screens')).toBeInTheDocument()
+    expect(screen.queryByText('Fix kiosk')).not.toBeInTheDocument()
+
+    await userEvent.clear(search)
+    await userEvent.type(search, 'draft')
+
+    expect(screen.getByRole('tab', { name: 'Alerts (0)' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('No work orders in this tab.')).toBeInTheDocument()
+    expect(screen.queryByText('Draft job')).not.toBeInTheDocument()
+  })
+
+  it.each(['/', '/?tab=alerts'])('tints alert rows at %s', async (url) => {
+    renderAt(<FlightboardPage />, { url })
     const row = (await screen.findByText('Fix kiosk')).closest('tr')!
 
     expect(row).toHaveAttribute('data-health', 'Alert')
+    expect(row).toHaveStyle({ backgroundColor: colors.alertRow })
     expect(within(row).getByText('Alert')).toBeInTheDocument()
   })
 
@@ -93,8 +139,8 @@ describe('FlightboardPage', () => {
     }
   })
 
-  it('opens the detail panel with check-in and total cost on row click', async () => {
-    renderAt(<FlightboardPage />)
+  it.each(['/', '/?tab=alerts'])('opens the detail panel with check-in and total cost at %s', async (url) => {
+    renderAt(<FlightboardPage />, { url })
     await userEvent.click(await screen.findByText('Fix kiosk'))
 
     const panel = screen.getByRole('complementary', { name: 'Work order 1000003 summary' })
