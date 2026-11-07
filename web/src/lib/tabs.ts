@@ -19,6 +19,13 @@ export const TABS: FlightboardTab[] = [
     label: 'In-Flight',
     matches: hasStatus('Published', 'Routed', 'Assigned', 'Work Done'),
   },
+  {
+    id: 'alerts',
+    label: 'Alerts',
+    matches: (wo) =>
+      (wo.health === 'Alert' || wo.health === 'Review') &&
+      wo.status !== 'Paid' && wo.status !== 'Cancelled',
+  },
   { id: 'draft', label: 'Draft', matches: hasStatus('Draft') },
   { id: 'published-routed', label: 'Published/Routed', matches: hasStatus('Published', 'Routed') },
   { id: 'assigned', label: 'Assigned', matches: hasStatus('Assigned') },
