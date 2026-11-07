@@ -33,6 +33,7 @@ type Filter struct {
 	Status     workorder.Status
 	ProviderID string
 	TypeOfWork string
+	Buyer      string
 }
 
 // Store is a concurrency-safe in-memory store.
@@ -93,6 +94,9 @@ func (s *Store) ListWorkOrders(f Filter) []workorder.WorkOrder {
 			continue
 		}
 		if f.TypeOfWork != "" && !strings.EqualFold(w.TypeOfWork, f.TypeOfWork) {
+			continue
+		}
+		if f.Buyer != "" && !strings.EqualFold(w.Buyer, f.Buyer) {
 			continue
 		}
 		out = append(out, clone(w))
